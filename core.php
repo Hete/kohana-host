@@ -24,7 +24,7 @@ class Host_Core implements ArrayAccess {
      * 
      * @var Host
      */
-    private static $current;
+    protected static $current;
 
     /**
      * Get the current host for this execution.
@@ -39,8 +39,8 @@ class Host_Core implements ArrayAccess {
         // Safe lookup for phpunit
         if (@preg_grep("/phpunit/", $_SERVER)) {
             $identifier = static::$testing_identifier;
-        }
-
+        }       
+        
         $current = static::$current ? static::$current : (static::$current = static::get($identifier));
 
         if ($path === NULL) {
@@ -100,8 +100,8 @@ class Host_Core implements ArrayAccess {
 
         Cookie::$salt = static::current("salt");
 
-        Kohana::$profiling = static::current("profiling");
-
+        Kohana::$profiling = static::current("profiling");      
+        
         $conf = static::current()->as_array();
 
         if ($settings !== NULL) {
@@ -165,12 +165,5 @@ class Host_Core implements ArrayAccess {
     }
 
 }
-?>
 
-}
-
-/*
-* To change this template, choose Tools | Templates
-* and open the template in the editor.
-*/
 ?>
