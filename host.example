@@ -2,7 +2,13 @@
 
 defined('SYSPATH') or die('No direct access allowed.');
 
-// Per host configs
+/**
+ * Per host configurations.
+ * 
+ * @package Host
+ * @author Hète.ca Team
+ * @copyright (c) 2013, Hète.ca Inc.
+ */
 return array(
     'default' => array(
         // Basic setup
