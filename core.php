@@ -34,14 +34,14 @@ class Host_Core implements ArrayAccess {
     public static function current($path = NULL, $default = NULL, $delimiter = NULL) {
 
         // If $_SERVER does not have SERVER_NAME, the default config will be loaded
-        $identifier = Arr::get($_SERVER, "SERVER_NAME", static::$default_identifier);
+        $identifier = Arr::get($_SERVER, "SERVER_NAME", Host::$default_identifier);
 
         // Safe lookup for phpunit
         if (@preg_grep("/phpunit/", $_SERVER)) {
-            $identifier = static::$testing_identifier;
+            $identifier = Host::$testing_identifier;
         }
 
-        $current = static::$current ? static::$current : (static::$current = static::get($identifier));
+        $current = Host::$current ? Host::$current : (Host::$current = Host::get($identifier));
 
         if ($path === NULL) {
             return $current;
@@ -59,10 +59,6 @@ class Host_Core implements ArrayAccess {
      * @return Host
      */
     public static function get($identifier, $default = NULL) {
-
-        if (Kohana::$profiling) {
-            $benchmark = Profiler::start(__CLASS__, __FUNCTION__);
-        }
 
         $hosts = require_once(APPPATH . "config/host" . EXT);
 
@@ -82,10 +78,6 @@ class Host_Core implements ArrayAccess {
             }
         }
 
-        if (isset($benchmark)) {
-            Profiler::stop($benchmark);
-        }
-
         return Host::factory($config);
     }
 
@@ -96,13 +88,11 @@ class Host_Core implements ArrayAccess {
      */
     public static function init(array $settings = NULL) {
 
-        Kohana::$environment = static::current("environment");
+        Kohana::$environment = Host::current('environment');
 
-        Cookie::$salt = static::current("salt");
+        Cookie::$salt = Host::current('cookie_salt');
 
-        Kohana::$profiling = static::current("profiling");
-
-        $conf = static::current()->as_array();
+        $conf = Host::current()->as_array();
 
         if ($settings !== NULL) {
             $conf = Arr::merge($conf, $settings);

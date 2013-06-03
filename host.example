@@ -5,30 +5,27 @@ defined('SYSPATH') or die('No direct access allowed.');
 /**
  * Per host configurations.
  * 
+ * Copy this file to APPPATH/config/host.php
+ * 
  * @package Host
  * @author Hète.ca Team
  * @copyright (c) 2013, Hète.ca Inc.
  */
 return array(
     'default' => array(
-        // Basic setup
-        "name" => "Your host name", // Setup name
-        "description" => "Your host escription", // Setup description
-        "domain" => "your-host-domain.com", // Registered domain for this setup
+        // Environment is defaulted to production
+        'environment' => Kohana::PRODUCTION,
         // Kohana::init setup
-        'environment' => Kohana::PRODUCTION, // Set by .htaccess or PRODUCTION by default
+        'base_url' => '/',
         'index_file' => FALSE,
-        'base_url' => "/",
         'caching' => TRUE,
-        'errors' => TRUE, // Handled
-        'profiling' => FALSE,
-        // Extra setups
+        'errors' => TRUE,
+        'profile' => FALSE,
+        // Additional setup
+        'cookie_salt' => NULL,
+        // Module setup
         'database' => 'production',
-        "cache" => "file", // File caching is optimal by default
-        "paypal" => "live",
-        "salt" => "your-cookie-salt",
-        "protocol" => "http", // Default protocol for requests
-        "google_analytics" => "your-google-analytics-code"
+        'cache' => 'file', // File caching is optimal by default        
     ),
     // Setup for testing
     'phpunit' => array(
@@ -40,16 +37,13 @@ return array(
     '\w+\.local' => array(
         'environment' => Kohana::DEVELOPMENT,
         'caching' => FALSE,
-        "profiling" => TRUE,
-        "protocol" => "http",
-        "paypal" => "sandbox"
+        'profiling' => TRUE,
     ),
     // localhost configuration
     '(localhost)|(192\.168\.)' => array(
         'base_url' => '/your-domain-name.com/',
         'database' => 'localhost',
-        "environment" => Kohana::DEVELOPMENT,
-        "protocol" => "http"
+        'environment' => Kohana::DEVELOPMENT,
     ),
 );
 ?>
