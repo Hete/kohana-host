@@ -34,20 +34,20 @@ class Host_Core implements ArrayAccess {
     public static function current($path = NULL, $default = NULL, $delimiter = NULL) {
 
         // If $_SERVER does not have SERVER_NAME, the default config will be loaded
-        $identifier = Arr::get($_SERVER, "SERVER_NAME", Host::$default_identifier);
+        $identifier = Arr::get($_SERVER, 'SERVER_NAME', Host::$default_identifier);
 
         // Safe lookup for phpunit
         if (@preg_grep("/phpunit/", $_SERVER)) {
             $identifier = Host::$testing_identifier;
         }
 
-        $current = Host::$current ? Host::$current : (Host::$current = Host::get($identifier));
+        Host::$current = Host::$current ? Host::$current : Host::get($identifier);
 
         if ($path === NULL) {
-            return $current;
+            return Host::$current;
         }
 
-        return $current->config($path, $default, $delimiter);
+        return Host::$current->config($path, $default, $delimiter);
     }
 
     /**
@@ -60,7 +60,7 @@ class Host_Core implements ArrayAccess {
      */
     public static function get($identifier, $default = NULL) {
 
-        $hosts = require_once(APPPATH . "config/host" . EXT);
+        $hosts = require_once(APPPATH . 'config/host' . EXT);
 
         if ($default === NULL) {
             $default = static::$default_identifier;
@@ -72,7 +72,7 @@ class Host_Core implements ArrayAccess {
 
         // Look for matching settings
         foreach ($hosts as $regex => $host_config) {
-            if (preg_match("/$regex/", $identifier)) {
+            if (preg_match("/^$regex$/", $identifier)) {
                 // Merge host config over default config              
                 $config = Arr::merge($config, $host_config);
             }
