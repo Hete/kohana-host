@@ -5,9 +5,10 @@ defined('SYSPATH') or die('No direct access allowed.');
 /**
  * Host managing system.
  * 
- * @package Host
- * @author Hète.ca Team
+ * @package   Host
+ * @author    Hète.ca Team
  * @copyright (c) 2013, Hète.ca Inc.
+ * @license   http://kohanaframework.org/license
  */
 class Host_Core implements ArrayAccess {
 
@@ -17,6 +18,12 @@ class Host_Core implements ArrayAccess {
      * @var string 
      */
     public static $default_identifier = "default";
+    
+    /**
+     * Testing identifier
+     * 
+     * @var string 
+     */
     public static $testing_identifier = "phpunit";
 
     /**
@@ -34,7 +41,7 @@ class Host_Core implements ArrayAccess {
     public static function current($path = NULL, $default = NULL, $delimiter = NULL) {
 
         // If $_SERVER does not have SERVER_NAME, the default config will be loaded
-        $identifier = Arr::get($_SERVER, 'SERVER_NAME', Host::$default_identifier);
+        $identifier = Arr::get($_SERVER, 'SERVER_NAME');
 
         // Safe lookup for phpunit
         if (@preg_grep("/phpunit/", $_SERVER)) {
@@ -63,12 +70,11 @@ class Host_Core implements ArrayAccess {
         $hosts = require_once(APPPATH . 'config/host' . EXT);
 
         if ($default === NULL) {
-            $default = static::$default_identifier;
+            $default = Host::$default_identifier;
         }
 
-        // Fetch and unset default config
-        $config = $hosts[$default];
-        unset($hosts[$default]);
+        // Use the default config as a basis
+        $config = Arr::get($hosts, $default, array());
 
         // Look for matching settings
         foreach ($hosts as $regex => $host_config) {
@@ -104,7 +110,7 @@ class Host_Core implements ArrayAccess {
     /**
      * 
      * @param array $config
-     * @return \Host
+     * @return Host
      */
     public static function factory(array $config) {
         return new Host($config);
