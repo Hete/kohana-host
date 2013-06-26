@@ -5,153 +5,112 @@ defined('SYSPATH') or die('No direct access allowed.');
 /**
  * Host managing system.
  * 
- * @package Host
- * @author Hète.ca Team
+ * @package   Host
+ * @author    Hète.ca Team
  * @copyright (c) 2013, Hète.ca Inc.
+ * @license   http://kohanaframework.org/license
  */
 class Host_Core implements ArrayAccess {
 
     /**
-     * Default identifier
-     * 
-     * @var string 
-     */
-    public static $default_identifier = "default";
-    public static $testing_identifier = "phpunit";
-
-    /**
      * Current host.
+     * 
+     * Host::init() must have been called, otherwise this will be NULL.
      * 
      * @var Host
      */
-    protected static $current;
-
-    /**
-     * Get the current host for this execution.
-     * 
-     * @return Host
-     */
-    public static function current($path = NULL, $default = NULL, $delimiter = NULL) {
-
-        // If $_SERVER does not have SERVER_NAME, the default config will be loaded
-        $identifier = Arr::get($_SERVER, 'SERVER_NAME', Host::$default_identifier);
-
-        // Safe lookup for phpunit
-        if (@preg_grep("/phpunit/", $_SERVER)) {
-            $identifier = Host::$testing_identifier;
-        }
-
-        Host::$current = Host::$current ? Host::$current : Host::get($identifier);
-
-        if ($path === NULL) {
-            return Host::$current;
-        }
-
-        return Host::$current->config($path, $default, $delimiter);
-    }
+    public static $current;
 
     /**
      * Fetch the configuration for a specified identifier (server name).
      * 
-     * @param string $identifier is a host identifier to match against
-     * @param string $default is the default configuration to fetch and merge
-     * upon.
+     * @param string $identifier every matched setup in the configuration file
+     * which key match this identifier will be merged over.
      * @return Host
      */
-    public static function get($identifier, $default = NULL) {
+    public static function factory($identifier, array $settings = array()) {
 
         $hosts = require_once(APPPATH . 'config/host' . EXT);
 
-        if ($default === NULL) {
-            $default = static::$default_identifier;
-        }
-
-        // Fetch and unset default config
-        $config = $hosts[$default];
-        unset($hosts[$default]);
-
         // Look for matching settings
-        foreach ($hosts as $regex => $host_config) {
+        foreach ($hosts as $regex => $host_settings) {
             if (preg_match("/^$regex$/", $identifier)) {
                 // Merge host config over default config              
-                $config = Arr::merge($config, $host_config);
+                $settings = Arr::merge($settings, $host_settings);
             }
         }
 
-        return Host::factory($config);
+        return new Host($settings);
     }
 
     /**
      * Initialize Kohana with setup proper to the current host.
      * 
-     * @param array $settings are settings to override setup in Kohana::init.
+     * Also set environment and cookie salt.
+     * 
+     * @see Kohana::init for $base options.
+     * 
+     * @param array $settings are base settings for every hosts.
      */
-    public static function init(array $settings = NULL) {
+    public static function init(array $settings = array(), $identifier = NULL) {
 
-        Kohana::$environment = Host::current('environment');
+        if ($identifier === NULL) {
 
-        Cookie::$salt = Host::current('cookie_salt');
+            // Auto-detection
+            if ($server_name = Arr::get($_SERVER, 'SERVER_NAME')) {
+                $identifier = $server_name;
+            }
 
-        $conf = Host::current()->as_array();
-
-        if ($settings !== NULL) {
-            $conf = Arr::merge($conf, $settings);
+            // Safe lookup for phpunit
+            if (@preg_grep('/phpunit/', $_SERVER)) {
+                $identifier = 'phpunit';
+            }
         }
 
-        Kohana::init($conf);
+        // Still NULL?        
+        if ($identifier === NULL) {
+            throw new Kohana_Exception('No identifier was detected. Check your configuration file.');
+        }
+
+        // Fetch the host based on the found identifier
+        Host::$current = Host::factory($identifier, $settings);
+
+        $settings = Host::$current->settings();
+
+        /**
+         * Initialize Kohana!
+         */
+        Kohana::init($settings);
+
+        Kohana::$environment = Host::$current['environment'];
+
+        Cookie::$salt = Host::$current['cookie_salt'];
     }
 
-    /**
-     * 
-     * @param array $config
-     * @return \Host
-     */
-    public static function factory(array $config) {
-        return new Host($config);
+    protected $_settings;
+
+    protected function __construct(array $settings) {
+        $this->_settings = $settings;
     }
 
-    /**
-     * 
-     * @param array $config
-     */
-    public function __construct(array $config) {
-        $this->_config = $config;
-    }
-
-    /**
-     * 
-     * @param type $path
-     * @param type $default
-     * @param type $delimiter
-     * @return variant
-     */
-    public function config($path, $default = NULL, $delimiter = NULL) {
-        return Arr::path($this->_config, $path, $default, $delimiter);
-    }
-
-    /**
-     * Return this configuration as an array.
-     * 
-     * @return array
-     */
-    public function as_array() {
-        return (array) $this->_config;
+    public function settings() {
+        return $this->_settings;
     }
 
     public function offsetExists($offset) {
-        return isset($this->_config[$offset]);
+        return isset($this->_settings[$offset]);
     }
 
     public function offsetGet($offset) {
-        return $this->_config[$offset];
+        return $this->_settings[$offset];
     }
 
     public function offsetSet($offset, $value) {
-        $this->_config[$offset] = $value;
+        
     }
 
     public function offsetUnset($offset) {
-        unset($this->_config[$offset]);
+        
     }
 
 }
