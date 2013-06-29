@@ -7,26 +7,12 @@ defined('SYSPATH') or die('No direct access allowed.');
  * 
  * Copy this file to APPPATH/config/host.php
  * 
- * @package Host
- * @author Hète.ca Team
+ * @package   Host
+ * @author    Hète.ca Team
  * @copyright (c) 2013, Hète.ca Inc.
+ * @license   http://kohanaframework.org/license
  */
 return array(
-    'default' => array(
-        // Environment is defaulted to production
-        'environment' => Kohana::PRODUCTION,
-        // Kohana::init setup
-        'base_url' => '/',
-        'index_file' => FALSE,
-        'caching' => TRUE,
-        'errors' => TRUE,
-        'profile' => FALSE,
-        // Additional setup
-        'cookie_salt' => NULL,
-        // Module setup
-        'database' => 'production',
-        'cache' => 'file', // File caching is optimal by default        
-    ),
     // Setup for testing
     'phpunit' => array(
         'environment' => Kohana::TESTING,
