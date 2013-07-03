@@ -34,7 +34,7 @@ class Host_Core implements ArrayAccess {
 
         // Look for matching settings
         foreach ($hosts as $regex => $host_settings) {
-            if (preg_match("/^$regex$/", $identifier)) {
+            if (preg_match("/$regex/", $identifier)) {
                 // Merge host config over default config              
                 $settings = Arr::merge($settings, $host_settings);
             }
