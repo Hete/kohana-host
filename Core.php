@@ -52,24 +52,24 @@ class Host_Core implements ArrayAccess {
      * 
      * @param array $settings are base settings for every hosts.
      */
-    public static function init(array $settings = array(), $identifier = NULL) {
+    public static function init(array $settings = array()) {
 
-        if ($identifier === NULL) {
-
-            // Auto-detection
-            if ($server_name = Arr::get($_SERVER, 'SERVER_NAME')) {
-                $identifier = $server_name;
-            }
-
-            // Safe lookup for phpunit
-            if (@preg_grep('/phpunit/', $_SERVER)) {
-                $identifier = 'phpunit';
-            }
+        // Auto-detection
+        if ($server_name = Arr::get($_SERVER, 'SERVER_NAME')) {
+            $identifier = $server_name;
         }
 
-        // Still NULL?        
+        // Safe lookup for phpunit
+        if (@preg_grep('/phpunit/', $_SERVER)) {
+            $identifier = 'phpunit';
+        }
+
+        if (@preg_grep('/minion/', $_SERVER)) {
+            $identifier = 'minion';
+        }
+
         if ($identifier === NULL) {
-            throw new Kohana_Exception('No identifier was detected. Check your configuration file.');
+            throw new Kohana_Exception('No identifier was detected.');
         }
 
         // Fetch the host based on the found identifier
@@ -87,22 +87,20 @@ class Host_Core implements ArrayAccess {
         Cookie::$salt = Host::$current['cookie_salt'];
     }
 
-    protected $_settings;
-
     protected function __construct(array $settings) {
-        $this->_settings = $settings;
+        $this->settings = $settings;
     }
 
     public function settings() {
-        return $this->_settings;
+        return $this->settings;
     }
 
     public function offsetExists($offset) {
-        return isset($this->_settings[$offset]);
+        return isset($this->settings[$offset]);
     }
 
     public function offsetGet($offset) {
-        return $this->_settings[$offset];
+        return $this->settings[$offset];
     }
 
     public function offsetSet($offset, $value) {
